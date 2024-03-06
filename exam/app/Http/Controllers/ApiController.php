@@ -9,97 +9,120 @@ use App\Models\ScoreCard;
 
 class ApiController extends Controller
 {
-    public function matchComm($matchId)
-    {
-        $cacheKey = 'api_data_' . $matchId;
-        // Check if data exists in cache
-        if (Cache::has($cacheKey)) {
-            // Return cached data if not older than 10 seconds
-            $cachedData = Cache::get($cacheKey);
-            $currentTime = now();
-            // $abc = json_decode($cachedData, true);
-            $lastUpdateTime = $cachedData['updated_at'];
-            if ($currentTime->diffInSeconds($lastUpdateTime) < 10) {
-                return $cachedData['data'];
-            }
-        }
+    public $keyLive = '8b0c753ec7msh0efc9f192e80dd9p19a301jsnc2abb827a489';
+    public $hostLive = 'cricbuzz-cricket.p.rapidapi.com';
 
-        $url = 'https://cricbuzz-cricket.p.rapidapi.com/mcenter/v1/' . $matchId . '/comm';
-
+    public function liveCall($key, $host, $url) {
         $headers = [
             'http' => [
-                'header' => "X-RapidAPI-Key: 155c725f29mshdd298cb332b3ddep1b2900jsnfabae51bda73\r\n" .
-                    "X-RapidAPI-Host: cricbuzz-cricket.p.rapidapi.com\r\n",
+                'header' => "X-RapidAPI-Key: ".$key."\r\n" .
+                    "X-RapidAPI-Host: ".$host."\r\n",
             ],
         ];
-
         $context = stream_context_create($headers);
-
-        // Use the file_get_contents to make the API call
         $response = file_get_contents($url, false, $context);
-
-        // Decode the response
-        $data = json_decode($response, true);
-
-        // Store data in the database
-        // Callapi::updateOrCreate(['match_id' => $matchId],
-        // [
-        //     'match_id' => $matchId,
-        //     'api_name' => 'demo',
-        //     'called' => 'test',
-        //     'json' => json_encode($data),
-        // ]);
-
-        // Cache the data for 10 seconds
-        Cache::put($cacheKey, ['data' => $response, 'updated_at' => now()], 10);
-
         return $response;
     }
-    public function matchScoreCard($matchId)
-    {
-        $cacheKey = 'api_data_' . $matchId;
-        // Check if data exists in cache
+    public function checkInCache($cacheKey, $seconds) {
         if (Cache::has($cacheKey)) {
-            // Return cached data if not older than 10 seconds
             $cachedData = Cache::get($cacheKey);
             $currentTime = now();
-            // $abc = json_decode($cachedData, true);
             $lastUpdateTime = $cachedData['updated_at'];
-            if ($currentTime->diffInSeconds($lastUpdateTime) < 10) {
+            if ($currentTime->diffInSeconds($lastUpdateTime) < $seconds)
                 return $cachedData['data'];
-            }
         }
-
-        $url = 'https://cricbuzz-cricket.p.rapidapi.com/mcenter/v1/' . $matchId . '/scard';
-
-        $headers = [
-            'http' => [
-                'header' => "X-RapidAPI-Key: 155c725f29mshdd298cb332b3ddep1b2900jsnfabae51bda73\r\n" .
-                    "X-RapidAPI-Host: cricbuzz-cricket.p.rapidapi.com\r\n",
-            ],
-        ];
-
-        $context = stream_context_create($headers);
-
-        // Use the file_get_contents to make the API call
-        $response = file_get_contents($url, false, $context);
-
-        // Decode the response
-        $data = json_decode($response, true);
-
-        // Store data in the database
-        // ScoreCard::updateOrCreate(['match_id' => $matchId],
-        // [
-        //     'match_id' => $matchId,
-        //     'api_name' => 'demo',
-        //     'called' => 'test',
-        //     'json' => json_encode($data),
-        // ]);
-
-        // Cache the data for 10 seconds
-        Cache::put($cacheKey, ['data' => $data, 'updated_at' => now()], 10);
-
-        return $data;
     }
-
+    public function matchComm($matchId) {
+        $cacheKey = 'api_data_' . $matchId;
+        $seconds = 10;
+        $response = $this->checkInCache($cacheKey, $seconds);
+        if ($response) {
+            return $response;
+            exit;        
+        }
+        $url = 'https://cricbuzz-cricket.p.rapidapi.com/mcenter/v1/' . $matchId . '/comm';
+        $response = $this->liveCall($this->keyLive, $this->hostLive, $url);
+        Cache::put($cacheKey, ['data' => $response, 'updated_at' => now()], $seconds);
+        return $response;
+    }
+    public function matchScoreCard($matchId) {
+        $cacheKey = 'api_data_' . $matchId;
+        $seconds = 10;
+        $response = $this->checkInCache($cacheKey, $seconds);
+        if ($response) {
+            return $response;
+            exit;        
+        }
+        $url = 'https://cricbuzz-cricket.p.rapidapi.com/mcenter/v1/' . $matchId . '/scard';
+        $response = $this->liveCall($this->keyLive, $this->hostLive, $url);
+        Cache::put($cacheKey, ['data' => $response, 'updated_at' => now()], $seconds);
+        return $response;
+    }
+    public function rankings($person, $formatType) {
+        $cacheKey = 'api_data_' . $person .'_'. $formatType;
+        $seconds = 10;
+        $response = $this->checkInCache($cacheKey, $seconds);
+        if ($response) {
+            return $response;
+            exit;        
+        }
+        $url = 'https://cricbuzz-cricket.p.rapidapi.com/stats/v1/rankings/'.$person.'?formatType='.
+        $formatType;
+        $response = $this->liveCall($this->keyLive, $this->hostLive, $url);
+        Cache::put($cacheKey, ['data' => $response, 'updated_at' => now()], $seconds);
+        return $response;
+    }
+    public function rankingsWomen($person, $formatType) {
+        $cacheKey = 'api_data_' . $person .'_'. $formatType;
+        $seconds = 10;
+        $response = $this->checkInCache($cacheKey, $seconds);
+        if ($response) {
+            return $response;
+            exit;        
+        }
+        $url = 'https://cricbuzz-cricket.p.rapidapi.com/stats/v1/rankings/'.$person.'?formatType='.
+        $formatType.'isWomn=1';
+        $response = $this->liveCall($this->keyLive, $this->hostLive, $url);
+        Cache::put($cacheKey, ['data' => $response, 'updated_at' => now()], $seconds);
+        return $response;
+    }
+    public function series($seriesType) {
+        $cacheKey = 'api_data_series'. $seriesType;
+        $seconds = 10;
+        $response = $this->checkInCache($cacheKey, $seconds);
+        if ($response) {
+            return $response;
+            exit;        
+        }
+        $url = 'https://cricbuzz-cricket.p.rapidapi.com/series/v1/'.$seriesType;
+        $response = $this->liveCall($this->keyLive, $this->hostLive, $url);
+        Cache::put($cacheKey, ['data' => $response, 'updated_at' => now()], $seconds);
+        return $response;
+    }
+    public function statsSeries($seriesId, $detail = '') {
+        $cacheKey = $detail !== '' ? 'api_data_stats_series_'.$detail.'_'. $seriesId : 'api_data_stats_series_'. $seriesId;
+        $url = $detail !== '' ? 'https://cricbuzz-cricket.p.rapidapi.com/stats/v1/series/'.$seriesId.'/'.$detail : 'https://cricbuzz-cricket.p.rapidapi.com/stats/v1/series/'.$seriesId;
+        $seconds = 10;
+        $response = $this->checkInCache($cacheKey, $seconds);
+        if ($response) {
+            return $response;
+            exit;        
+        }
+        $response = $this->liveCall($this->keyLive, $this->hostLive, $url);
+        Cache::put($cacheKey, ['data' => $response, 'updated_at' => now()], $seconds);
+        return $response;
+    }
+    public function matches($status) {
+        $cacheKey = 'api_data_matches'. $status;
+        $seconds = 10;
+        $response = $this->checkInCache($cacheKey, $seconds);
+        if ($response) {
+            return $response;
+            exit;        
+        }
+        $url = 'https://cricbuzz-cricket.p.rapidapi.com/matches/v1/' . $status;
+        $response = $this->liveCall($this->keyLive, $this->hostLive, $url);
+        Cache::put($cacheKey, ['data' => $response, 'updated_at' => now()], $seconds);
+        return $response;
+    }
 }
