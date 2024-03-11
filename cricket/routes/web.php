@@ -4,7 +4,13 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\ApiController;
 
-
+// ### after project download from live, if there is no changes effecs come in local
+//  Run this commands
+# php artisan config:clear
+# php artisan event:clear
+# php artisan route:clear
+# php artisan view:clear
+// ###
 
 Route::get('/', function () {
     return view('welcome');
