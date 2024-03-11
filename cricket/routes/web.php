@@ -10,7 +10,7 @@ use App\Http\Controllers\ApiController;
 # php artisan event:clear
 # php artisan route:clear
 # php artisan view:clear
-// ###
+// ### 
 
 Route::get('/', function () {
     return view('welcome');
