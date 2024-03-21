@@ -9,7 +9,7 @@ use App\Models\ScoreCard;
 
 class ApiController extends Controller
 {
-    public $keyLive = '8b0c753ec7msh0efc9f192e80dd9p19a301jsnc2abb827a489';
+    public $keyLive = '83a0367f5fmsh10fe7a525a45caap1b996fjsn13c24036e8d0';
     public $hostLive = 'cricbuzz-cricket.p.rapidapi.com';
 
     public function liveCall($key, $host, $url) {
