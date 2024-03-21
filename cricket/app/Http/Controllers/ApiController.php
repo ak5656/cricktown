@@ -107,7 +107,7 @@ class ApiController extends Controller
             exit;        
         }
         $url = 'https://cricbuzz-cricket.p.rapidapi.com/stats/v1/rankings/'.$person.'?formatType='.
-        $formatType.'isWomn=1';
+        $formatType.'&isWomen=1';
         $response = $this->liveCall($this->keyLive, $this->hostLive, $url);
         Cache::put($cacheKey, ['data' => $response, 'updated_at' => now()], $seconds);
         return $response;
