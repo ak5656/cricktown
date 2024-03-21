@@ -33,7 +33,7 @@ class ApiController extends Controller
         }
     }
     public function matchComm($matchId) {
-        $cacheKey = 'api_data_' . $matchId;
+        $cacheKey = 'api_data_comm_' . $matchId;
         $seconds = 20;
         $response = $this->checkInCache($cacheKey, $seconds);
         if ($response) {
@@ -46,7 +46,7 @@ class ApiController extends Controller
         return $response;
     }
     public function matchScoreCard($matchId) {
-        $cacheKey = 'api_data_' . $matchId;
+        $cacheKey = 'api_data_scard_' . $matchId;
         $seconds = 20;
         $response = $this->checkInCache($cacheKey, $seconds);
         if ($response) {
@@ -58,8 +58,34 @@ class ApiController extends Controller
         Cache::put($cacheKey, ['data' => $response, 'updated_at' => now()], $seconds);
         return $response;
     }
+    public function matchInfo($matchId) {
+        $cacheKey = 'api_data_info_' . $matchId;
+        $seconds = 900;
+        $response = $this->checkInCache($cacheKey, $seconds);
+        if ($response) {
+            return $response;
+            exit;        
+        }
+        $url = 'https://cricbuzz-cricket.p.rapidapi.com/mcenter/v1/' . $matchId;
+        $response = $this->liveCall($this->keyLive, $this->hostLive, $url);
+        Cache::put($cacheKey, ['data' => $response, 'updated_at' => now()], $seconds);
+        return $response;
+    }
+    public function team($matchId, $teamId) {
+        $cacheKey = 'api_data_team_' . $matchId. '_'. $teamId;
+        $seconds = 900;
+        $response = $this->checkInCache($cacheKey, $seconds);
+        if ($response) {
+            return $response;
+            exit;        
+        }
+        $url = 'https://cricbuzz-cricket.p.rapidapi.com/mcenter/v1/' . $matchId . '/team/' . $teamId;
+        $response = $this->liveCall($this->keyLive, $this->hostLive, $url);
+        Cache::put($cacheKey, ['data' => $response, 'updated_at' => now()], $seconds);
+        return $response;
+    }
     public function rankings($person, $formatType) {
-        $cacheKey = 'api_data_' . $person .'_'. $formatType;
+        $cacheKey = 'api_data_ranking_men_' . $person .'_'. $formatType;
         $seconds = 604800;
         $response = $this->checkInCache($cacheKey, $seconds);
         if ($response) {
@@ -73,7 +99,7 @@ class ApiController extends Controller
         return $response;
     }
     public function rankingsWomen($person, $formatType) {
-        $cacheKey = 'api_data_' . $person .'_'. $formatType;
+        $cacheKey = 'api_data_ranking_women' . $person .'_'. $formatType;
         $seconds = 604800;
         $response = $this->checkInCache($cacheKey, $seconds);
         if ($response) {
@@ -106,6 +132,21 @@ class ApiController extends Controller
             $seconds = 900;
         else
             $seconds = 86400;
+        $response = $this->checkInCache($cacheKey, $seconds);
+        if ($response) {
+            return $response;
+            exit;        
+        }
+        $response = $this->liveCall($this->keyLive, $this->hostLive, $url);
+        Cache::put($cacheKey, ['data' => $response, 'updated_at' => now()], $seconds);
+        return $response;
+    }
+    public function publicStatsSeries($seriesId, $statsType = '') {
+        $cacheKey = $statsType !== '' ? 'api_data_public_stats_series_'.$seriesId.'_'. $statsType : 'api_data_public_stats_series_'. $seriesId;
+
+        $url = $statsType !== '' ? 'https://cricktown.28infotech.com/cricket/public/api/stats/series/'.$seriesId.'?statsType='.$statsType : 'https://cricktown.28infotech.com/cricket/public/api/stats/series/'.$seriesId;
+
+        $seconds = 900;
         $response = $this->checkInCache($cacheKey, $seconds);
         if ($response) {
             return $response;
