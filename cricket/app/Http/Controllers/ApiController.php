@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use App\Models\Callapi;
 use App\Models\ScoreCard;
+use Exception;
 
 class ApiController extends Controller
 {
@@ -20,7 +21,12 @@ class ApiController extends Controller
             ],
         ];
         $context = stream_context_create($headers);
-        $response = file_get_contents($url, false, $context);
+        try {
+            $response = file_get_contents($url, false, $context);
+        } catch (Exception $e) {
+            echo $e->getMessage();
+
+        }
         return $response;
     }
     public function checkInCache($cacheKey, $seconds) {
@@ -144,7 +150,7 @@ class ApiController extends Controller
     public function publicStatsSeries($seriesId, $statsType = '') {
         $cacheKey = $statsType !== '' ? 'api_data_public_stats_series_'.$seriesId.'_'. $statsType : 'api_data_public_stats_series_'. $seriesId;
 
-        $url = $statsType !== '' ? 'https://cricktown.28infotech.com/cricket/public/api/stats/series/'.$seriesId.'?statsType='.$statsType : 'https://cricktown.28infotech.com/cricket/public/api/stats/series/'.$seriesId;
+        $url = $statsType !== '' ? 'https://cricbuzz-cricket.p.rapidapi.com/stats/v1/series/'.$seriesId.'?statsType='.$statsType : 'https://cricbuzz-cricket.p.rapidapi.com/stats/v1/series/'.$seriesId;
 
         $seconds = 900;
         $response = $this->checkInCache($cacheKey, $seconds);
